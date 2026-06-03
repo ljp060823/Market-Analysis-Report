@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools >= 45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "financial-agent"
+version = "0.1.0"
+description = "Financial Agent Backend"
+requires-python = ">=3.10"
+dependencies = []   #   requirements.txt  
+
+[tool.setuptools.packages.find]
+where = ["backend"]      # 告诉 setuptools 从 backend 目录开始找包
+include = ["backend*"]   # 只包含 backend 及其子包
+namespaces = false
