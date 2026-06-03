@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>市场分析 Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 0;
+            text-align: center;
+        }
+        .header h1 { font-size: 1.2rem; font-weight: 600; color: #0f172a; }
+        .header p { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+        .container { max-width: 860px; margin: 0 auto; padding: 16px; }
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .input-row { display: flex; gap: 8px; align-items: flex-end; }
+        .input-row textarea {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            resize: none;
+            height: 44px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .input-row textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+        .btn-primary { background: #3b82f6; color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: #2563eb; }
+        .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+        .btn-stop { background: #ef4444; color: #fff; }
+        .btn-stop:hover { background: #dc2626; }
+        .btn-secondary { background: #f1f5f9; color: #475569; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-approve { background: #10b981; color: #fff; }
+        .btn-approve:hover { background: #059669; }
+        .btn-reject { background: #f59e0b; color: #fff; }
+        .btn-reject:hover { background: #d97706; }
+        .btn-pdf { background: #8b5cf6; color: #fff; }
+        .btn-pdf:hover { background: #7c3aed; }
+        .options-title { font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-clear-history { background: #ef4444; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+        .btn-clear-history:hover { background: #dc2626; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.82rem;
+            color: #475569;
+        }
+        .option-item:hover { background: #eff6ff; border-color: #bfdbfe; }
+        .option-item.active { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+        .option-item input { accent-color: #3b82f6; }
+        .hitl-section {
+            display: none;
+            background: #fffbeb;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        .hitl-section.visible { display: block; }
+        .hitl-title { font-size: 0.9rem; font-weight: 700; color: #92400e; margin-bottom: 8px; }
+        .hitl-text { font-size: 0.82rem; color: #78350f; margin-bottom: 12px; white-space: pre-wrap; background: #fef3c7; padding: 10px; border-radius: 6px; max-height: 200px; overflow-y: auto; }
+        .hitl-actions { display: flex; gap: 8px; align-items: center; }
+        .hitl-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #fde68a;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-family: inherit;
+        }
+        .chat-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            min-height: 350px;
+            max-height: 65vh;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .message { margin-bottom: 14px; }
+        .message-user {
+            background: #3b82f6;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 14px 14px 2px 14px;
+            max-width: 80%;
+            margin-left: auto;
+            font-size: 0.88rem;
+        }
+        .message-assistant {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px 14px;
+            border-radius: 14px 14px 14px 2px;
+            max-width: 95%;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.7;
+        }
+        .message-assistant .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #3b82f6;
+            animation: blink 0.8s step-end infinite;
+            vertical-align: text-bottom;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        .status-bar {
+            text-align: center;
+            padding: 6px;
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+        .status-bar.loading { color: #3b82f6; }
+        .status-bar.done { color: #10b981; }
+        .status-bar.error { color: #ef4444; }
+        .status-bar.waiting { color: #f59e0b; }
+        .examples { margin-top: 10px; }
+        .examples span {
+            display: inline-block;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 0.78rem;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            color: #475569;
+            transition: background 0.15s;
+        }
+        .examples span:hover { background: #e2e8f0; }
+        .footer { text-align: center; padding: 14px; font-size: 0.72rem; color: #94a3b8; }
+        .history-section { margin-top: 14px; }
+        .history-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            font-size: 0.82rem;
+            color: #475569;
+        }
+        .history-item:hover { background: #f8fafc; }
+        .history-item:last-child { border-bottom: none; }
+        .history-time { font-size: 0.72rem; color: #94a3b8; }
+        .pdf-section { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+        .pdf-section.visible { display: flex; gap: 8px; align-items: center; }
+        .pdf-section label { font-size: 0.82rem; color: #475569; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>市场分析 Agent</h1>
+        <p>多源数据采集 · 智能分析 · 报告生成</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="input-row">
+                <textarea id="queryInput" placeholder="输入公司名、行业或事件..." rows="1"></textarea>
+                <button id="submitBtn" class="btn btn-primary" onclick="startResearch()">开始分析</button>
+                <button id="stopBtn" class="btn btn-stop" onclick="stopResearch()" style="display:none;">停止</button>
+                <button id="clearBtn" class="btn btn-secondary" onclick="clearChat()">清空</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="options-title">分析选项</div>
+            <div class="options-grid">
+                <label class="option-item" onclick="toggleOption(this)">
+                    <input type="checkbox" id="enableNews"> 启用新闻爬取
+                </label>
+                <label class="option-item" onclick="toggleOption(this)">
+                    <input type="checkbox" id="enableGraph" checked> 启用知识图谱
+                </label>
+                <label class="option-item" onclick="toggleOption(this)">
+                    <input type="checkbox" id="enableFinancial"> 财务数据分析
+                </label>
+                <label class="option-item" onclick="toggleOption(this)">
+                    <input type="checkbox" id="enableDeep"> 深度分析模式
+                </label>
+            </div>
+
+            <div class="examples">
+                <span onclick="setQuery('比亚迪最新融资动态')">比亚迪最新融资动态</span>
+                <span onclick="setQuery('阿里巴巴集团2024年财报分析')">阿里巴巴集团2024年财报分析</span>
+                <span onclick="setQuery('宁德时代电池技术专利')">宁德时代电池技术专利</span>
+                <span onclick="setQuery('特斯拉上海工厂产能')">特斯拉上海工厂产能</span>
+            </div>
+        </div>
+
+        <div id="chatSection" class="chat-section"></div>
+        <div id="statusBar" class="status-bar"></div>
+
+        <div id="pdfSection" class="card pdf-section">
+            <label>分析完成，可导出 PDF：</label>
+            <button class="btn btn-pdf" onclick="generatePdf('report', this)">导出报告 PDF</button>
+            <button class="btn btn-pdf" onclick="generatePdf('search', this)">导出搜索数据 PDF</button>
+        </div>
+
+        <div class="card history-section">
+            <div class="options-title">
+                历史记录
+                <button class="btn-clear-history" onclick="clearHistory()">清空历史</button>
+            </div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <div class="footer">市场分析 Agent v1.0</div>
+
+    <script>
+        let isRunning = false;
+        let abortController = null;
+        let hitlResolve = null;
+        let currentQuery = '';
+        let lastReport = '';
+        let lastSearchData = '';
+
+        function toggleOption(el) {
+            el.classList.toggle('active');
+        }
+
+        function setQuery(text) {
+            document.getElementById('queryInput').value = text;
+            document.getElementById('queryInput').focus();
+        }
+
+        function clearChat() {
+            document.getElementById('chatSection').innerHTML = '';
+            document.getElementById('statusBar').textContent = '';
+            document.getElementById('statusBar').className = 'status-bar';
+            document.getElementById('pdfSection').classList.remove('visible');
+        }
+
+        function addMessage(role, content) {
+            const chat = document.getElementById('chatSection');
+            const div = document.createElement('div');
+            div.className = 'message';
+            const inner = document.createElement('div');
+            inner.className = role === 'user' ? 'message-user' : 'message-assistant';
+            inner.textContent = content;
+            div.appendChild(inner);
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+            return inner;
+        }
+
+        function setStatus(text, type) {
+            const bar = document.getElementById('statusBar');
+            bar.textContent = text;
+            bar.className = 'status-bar ' + type;
+        }
+
+        function saveHistory(query, report) {
+            let records = JSON.parse(localStorage.getItem('analysis_history') || '[]');
+            records.unshift({
+                time: new Date().toLocaleString('zh-CN'),
+                query,
+                report
+            });
+            if (records.length > 20) records = records.slice(0, 20);
+            localStorage.setItem('analysis_history', JSON.stringify(records));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const records = JSON.parse(localStorage.getItem('analysis_history') || '[]');
+            if (!records.length) {
+                list.innerHTML = '<div style="padding:8px;color:#94a3b8;font-size:0.8rem;">暂无记录</div>';
+                return;
+            }
+            list.innerHTML = records.map((r, i) =>
+                `<div class="history-item" onclick="loadHistory(${i})">
+                    <span class="history-time">${r.time}</span> — ${r.query}
+                </div>`
+            ).join('');
+        }
+
+        function loadHistory(idx) {
+            const records = JSON.parse(localStorage.getItem('analysis_history') || '[]');
+            if (records[idx]) {
+                document.getElementById('chatSection').innerHTML = '';
+                addMessage('user', records[idx].query);
+                addMessage('assistant', records[idx].report);
+            }
+        }
+
+        async function generatePdf(type, btn) {
+            try {
+                const originalText = btn.textContent;
+                btn.textContent = '生成中...';
+                btn.disabled = true;
+
+                console.log('Generating PDF:', type, 'query:', currentQuery);
+                console.log('Report length:', lastReport.length, 'Search data length:', lastSearchData.length);
+
+                const resp = await fetch('/api/research/generate_pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: type, report: lastReport, search_data: lastSearchData, query: currentQuery })
+                });
+
+                console.log('PDF response status:', resp.status);
+                const result = await resp.json();
+                console.log('PDF response:', result);
+
+                if (result.pdf_url) {
+                    const fullUrl = window.location.origin + result.pdf_url;
+                    console.log('Downloading from:', fullUrl);
+                    const a = document.createElement('a');
+                    a.href = fullUrl;
+                    a.download = result.filename;
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    btn.textContent = '已导出 ✓';
+                } else if (result.error) {
+                    alert('PDF 生成失败: ' + result.error);
+                    btn.textContent = originalText;
+                } else {
+                    alert('PDF 生成失败，请检查后端日志');
+                    btn.textContent = originalText;
+                }
+            } catch (e) {
+                console.error('PDF error:', e);
+                alert('PDF 生成失败: ' + e.message);
+                btn.textContent = '重试';
+            } finally {
+                setTimeout(() => {
+                    btn.disabled = false;
+                    if (!btn.textContent.includes('已导出')) {
+                        btn.textContent = type === 'report' ? '导出报告 PDF' : '导出搜索数据 PDF';
+                    }
+                }, 2000);
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('确定要清空所有历史记录吗？')) {
+                localStorage.removeItem('research_history');
+                document.getElementById('historyList').innerHTML = '<div style="color: #9ca3af; text-align: center; padding: 20px;">暂无历史记录</div>';
+            }
+        }
+
+        async function startResearch() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query || isRunning) return;
+
+            currentQuery = query;
+            isRunning = true;
+            abortController = new AbortController();
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = '';
+            document.getElementById('queryInput').disabled = true;
+            document.getElementById('pdfSection').classList.remove('visible');
+
+            addMessage('user', query);
+            const assistantEl = addMessage('assistant', '');
+            assistantEl.innerHTML = '<span class="cursor"></span>';
+            setStatus('正在分析...', 'loading');
+
+            const options = {
+                enable_news: document.getElementById('enableNews').checked,
+                enable_graph: document.getElementById('enableGraph').checked,
+                enable_financial: document.getElementById('enableFinancial').checked,
+                enable_deep: document.getElementById('enableDeep').checked
+            };
+
+            let fullText = '';
+            let searchBuffer = '';
+            let reportBuffer = '';
+
+            try {
+                console.log('Starting research with query:', query);
+
+                const response = await fetch('/api/research/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, ...options }),
+                    signal: abortController.signal,
+                    keepalive: false
+                });
+
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errText}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        console.log('Stream complete');
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (!line.startsWith('data: ')) continue;
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            const content = data.content || '';
+                            if (!content) continue;
+
+                            fullText += content;
+
+                            if (content.includes('搜索数据')) searchBuffer += content;
+                            if (content.includes('最终报告') || content.includes('报告')) reportBuffer += content;
+
+                            assistantEl.textContent = fullText;
+                            document.getElementById('chatSection').scrollTop = document.getElementById('chatSection').scrollHeight;
+                        } catch (e) {
+                            console.warn('Parse error:', e);
+                        }
+                    }
+                }
+
+                lastReport = reportBuffer || fullText;
+                lastSearchData = searchBuffer;
+                setStatus('分析完成', 'done');
+                saveHistory(query, fullText);
+                document.getElementById('pdfSection').classList.add('visible');
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    console.log('Request aborted by user');
+                    setStatus('已停止', 'error');
+                } else {
+                    console.error('Stream error:', err);
+                    assistantEl.textContent = fullText || `错误: ${err.message}`;
+                    setStatus('连接失败', 'error');
+                }
+            } finally {
+                isRunning = false;
+                abortController = null;
+                document.getElementById('submitBtn').style.display = '';
+                document.getElementById('stopBtn').style.display = 'none';
+                document.getElementById('queryInput').disabled = false;
+                document.getElementById('queryInput').value = '';
+            }
+        }
+
+        function stopResearch() {
+            if (abortController) {
+                abortController.abort();
+            }
+            if (hitlResolve) {
+                hitlResolve({ action: 'abort', feedback: '' });
+                hitlResolve = null;
+            }
+        }
+
+        function hitlRespond(action) {
+            const feedback = document.getElementById('hitlInput').value.trim();
+            if (hitlResolve) {
+                hitlResolve({ action, feedback });
+                hitlResolve = null;
+            }
+            document.getElementById('hitlInput').value = '';
+        }
+
+        document.getElementById('queryInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                startResearch();
+            }
+        });
+
+        renderHistory();
+    </script>
+</body>
+</html>
