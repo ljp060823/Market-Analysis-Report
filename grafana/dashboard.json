@@ -1,0 +1,9 @@
+{
+  "title": "financial agent Production Dashboard",
+  "panels": [
+    { "title": "并发数", "type": "gauge", "targets": [{ "expr": "sum(concurrent_requests)" }] },
+    { "title": "Token消耗 (hist)", "type": "histogram", "targets": [{ "expr": "llm_token_usage_bucket" }] },
+    { "title": "Celery队列长度", "type": "gauge", "targets": [{ "expr": "celery_queue_length" }] },
+    { "title": "Redis缓存命中率", "type": "stat", "targets": [{ "expr": "cache_hit_total / (cache_hit_total + cache_miss_total)" }] }
+  ]
+}

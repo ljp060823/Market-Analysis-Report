@@ -1,0 +1,51 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisCenteredZero": false, "axisLabel": "", "lineWidth": 2, "fillOpacity": 10}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "title": "并发请求数",
+      "type": "timeseries",
+      "targets": [{"expr": "concurrent_requests", "legendFormat": "并发请求"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 100}]}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "title": "LLM 总 Token 消耗",
+      "type": "stat",
+      "targets": [{"expr": "llm_token_usage_sum", "legendFormat": "总Token"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "lineWidth": 2, "fillOpacity": 10}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "id": 3,
+      "title": "Python GC 对象收集",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(python_gc_objects_collected_total[5m])", "legendFormat": "gen{{generation}}"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "", "lineWidth": 2, "fillOpacity": 10}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "id": 4,
+      "title": "进程内存 (MB)",
+      "type": "timeseries",
+      "targets": [{"expr": "process_resident_memory_bytes / 1024 / 1024", "legendFormat": "RSS"}]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["fastapi"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "title": "AetherReport 监控面板",
+  "uid": "aether-report"
+}
